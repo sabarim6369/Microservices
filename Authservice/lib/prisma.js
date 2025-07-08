@@ -1,3 +1,3 @@
-import { PrismaClient } from "@generated/prisma";
+const { PrismaClient } = require('../generated/prisma'); // Adjust the import path as necessary
 const prisma = new PrismaClient();
-export default prisma;
+module.exports = prisma;
