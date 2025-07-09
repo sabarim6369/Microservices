@@ -7,18 +7,15 @@ const SALT_ROUNDS = 10;
 exports.signup = async (req, res) => {
   try {
     const { email, password, name } = req.body;
-
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user
-    const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name },
+   const user = await prisma.user.create({
+      data: { email, password: hashedPassword, name },  
     });
 
     res.status(201).json({ message: 'User created successfully', userId: user.id });
