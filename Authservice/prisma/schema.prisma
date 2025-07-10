@@ -20,4 +20,10 @@ model User{
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   role String @default("user") 
+  carts Cart[] @relation()
+}
+model Cart{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 }
