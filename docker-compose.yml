@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices
+
+  auth-service:
+    build: ./Authservice
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672
+      - JWT_SECRET=your-jwt-secret-here
+    networks:
+      - microservices
+
+  product-service:
+    build: ./Productservice
+    container_name: product-service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672
+    networks:
+      - microservices
+
+  order-service:
+    build: ./Orderservice
+    container_name: order-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672
+    networks:
+      - microservices
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  microservices:
+    driver: bridge

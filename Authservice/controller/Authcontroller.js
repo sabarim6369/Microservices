@@ -1,9 +1,11 @@
-  const prisma = require('../lib/prisma'); // Adjust the import path as necessary
+  const prisma = require('../lib/prisma'); 
   const bcrypt = require('bcrypt');
   const jwt = require('jsonwebtoken');
+  const MessageService = require('../services/messageService');
 
   const SALT_ROUNDS = 10;
-
+  const messageService = new MessageService();
+  
   exports.signup = async (req, res) => {
     try {
       const { email, password, name } = req.body;
@@ -17,6 +19,13 @@
     const user = await prisma.user.create({
         data: { email, password: hashedPassword, name },  
       });
+
+      // Publish user created event
+      try {
+        await messageService.publishUserCreated(user);
+      } catch (msgError) {
+        console.error('Failed to publish user created event:', msgError);
+      }
 
       res.status(201).json({ message: 'User created successfully', userId: user.id });
     } catch (error) {
@@ -35,7 +44,6 @@
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      // Compare passwords
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(401).json({ error: 'Invalid email or password' });
@@ -79,7 +87,6 @@ exports.addToCart = async (req, res) => {
     const cart = await prisma.cart.create({
       data: {
         userId, // This links cart to user
-        // Add other fields if needed
       },
     });
 
